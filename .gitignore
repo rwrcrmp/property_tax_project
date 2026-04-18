@@ -34,3 +34,6 @@ data/exports/*
 
 # But keep .gitkeep files
 !**/.gitkeep
+
+# Archive folders — ignored by git anywhere in the repo, kept on local machine only
+**/archive/
