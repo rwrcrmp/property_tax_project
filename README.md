@@ -16,46 +16,54 @@ The core hypothesis is that properties operating as whole-home short-term rental
 
 | Dataset | Source | File |
 |---|---|---|
-| Inside Airbnb listings | [Inside Airbnb](http://insideairbnb.com) | `data/raw/listings.csv.gz` |
-| Austin STR permits | City of Austin Open Data Portal | `data/raw/shortrent_locations.csv` |
+| Inside Airbnb listings | [Inside Airbnb](http://insideairbnb.com) | `data/raw/listings.geojson` |
+| Austin STR permits | City of Austin Open Data Portal | `data/raw/shortrent_locations.geojson` |
 | Travis County boundary | U.S. Census TIGERweb REST API | `data/raw/travis_county.geojson` |
-| Austin city limits | City of Austin Open Data Portal | `data/raw/austin_city_limits.geojson` |
 | TCAD property tax export | Travis County Appraisal District | `data/raw/Travis_protaxExport_*.json` |
 
 ---
 
-## Geospatial Pipeline
+## Pipeline
 
-### Step 1: Exploratory Data Checks (`explore_geodata.ipynb`)
+### Step 1: TCAD Data Ingestion (`load_protax_to_sqlite.py`)
 
-Before building the aggregation pipeline, this notebook verifies that downloaded boundary and listing data are valid:
+The TCAD property tax export is a ~29GB JSON file. This script streams it record-by-record using `ijson` (never loading the full file into memory) and loads it into a normalized SQLite database at `data/processed/travis_property_tax.db`.
 
-- Loads and inspects the Austin city limits polygon (CRS, bounding box, jurisdiction type breakdown)
-- Converts the Airbnb CSV to a GeoDataFrame using lat/lon columns and plots listings over the city boundary
-- Loads and inspects the STR permit dataset
+**Output tables:**
 
-All layers use **EPSG:4326** (WGS84 lat/lon) as the common coordinate reference system.
+| Table | Contents |
+|---|---|
+| `properties` | Core parcel fields — pID, propType, geometry, inactive status |
+| `property_profile` | Exemption codes, improvement details, taxing unit |
+| `property_situs` | Addresses (street, city, zip) |
+| `property_characteristics` | Use code, subtype, zoning |
+| `property_identification` | geoID and cross-reference IDs |
+| `property_legal_description` | Legal acreage and description |
 
-### Step 2: H3 Hexagonal Aggregation (`aggregate_to_hex.py`)
+SQL queries for exploring exemption data are in `queries/homestead_exemptions.sql`.
 
-To enable spatial comparison across datasets, the county is divided into a hexagonal grid using [Uber's H3 library](https://h3geo.org/) at **resolution 8** (hexagons roughly 0.7 km² each). Each data source is then aggregated to hex cells.
+### Step 2: Ratio Computation (`aggregate_to_hex.py`)
 
-**Processing steps:**
+The core analytical pipeline. Queries the SQLite database, combines all three data sources, and produces a per-neighborhood ratio dataset saved to `data/processed/hex_ratios.geojson`.
 
-1. **Build the hex grid** — dissolve Travis County to a single polygon, then fill it with H3 cell IDs (`h3.geo_to_cells()`). Each cell ID is converted to a Shapely polygon and stored in a GeoDataFrame.
+The county is divided into a hexagonal grid using [Uber's H3 library](https://h3geo.org/) at **resolution 8** (~0.7 km² per cell). For each cell the following are computed:
 
-2. **Airbnb listings** — each listing is assigned to its containing hex cell (`h3.latlng_to_cell()`). Two filters are applied before counting:
-   - `room_type == "Entire home/apt"` — excludes private/shared rooms, which pose lower fraud risk
-   - `number_of_reviews_ltm >= 1` — excludes likely-dormant listings with no recent activity
+| Field | Description |
+|---|---|
+| `sfr_total` | SFR parcels with valid geometry |
+| `sfr_homestead` | SFR parcels claiming homestead (HS) exemption |
+| `str_permits_type2` | Type 2 Residential STR permits (whole-home, non-owner-occupied) |
+| `airbnb_entire_home` | Active entire-home Airbnb listings |
+| `homestead_rate` | sfr_homestead / sfr_total |
+| `str_permit_rate` | str_permits_type2 / sfr_total |
+| `airbnb_rate` | airbnb_entire_home / sfr_total |
+| `registration_gap` | airbnb_entire_home − str_permits_type2 |
 
-3. **STR permits** — each permit is similarly assigned to a hex cell and filtered to **Type 2 Residential** (whole-home, non-owner-occupied), which is the permit classification most relevant to homestead fraud.
+**Cell inclusion thresholds** (per `docs/study_area_parameters.md`):
+- `sfr_total >= 20` — minimum parcel count for a stable ratio
+- `airbnb_entire_home >= 3` AND `airbnb_rate >= 0.02` — minimum STR activity
 
-4. **Join** — Airbnb counts and STR permit counts are left-joined onto the hex grid, with unmatched cells filled with zero.
-
-The result is a single GeoDataFrame where each row is a hexagon containing:
-- `hex_id` — H3 cell identifier
-- `airbnb_entire_home` — count of active entire-home Airbnb listings
-- `str_permits_type2` — count of Type 2 STR permits
+**SFR definition:** `propType = 'R'`, `inactive = 0`, `subType = 'RES'`. Approximately 13–14% of SFR parcels have null geometry and are excluded; this introduces a mild upward bias in `homestead_rate` estimates.
 
 > **Note on the license field:** The Inside Airbnb `license` column is 100% empty for this market, so permit cross-referencing by permit number is not possible. Spatial proximity is the only available link between Airbnb listings and the STR permit registry.
 
