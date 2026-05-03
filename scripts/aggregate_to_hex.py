@@ -1,5 +1,5 @@
 """
-Stage 4: Ratio Computation Pipeline
+Stage 2: Ratio Computation Pipeline
 
 For each H3 hexagonal cell at resolution 8, compute:
   - sfr_total:          SFR parcels with valid geometry
@@ -28,11 +28,11 @@ from shapely.geometry import Polygon
 # Configuration
 # =============================================================================
 
-PROJECT_ROOT    = Path(__file__).parent
-DB_PATH         = PROJECT_ROOT / "data" / "processed" / "travis_property_tax.db"
-STR_PATH        = PROJECT_ROOT / "data" / "raw" / "shortrent_locations.geojson"
-AIRBNB_PATH     = PROJECT_ROOT / "data" / "raw" / "listings.geojson"
-OUTPUT_PATH     = PROJECT_ROOT / "data" / "processed" / "hex_ratios.geojson"
+PROJECT_ROOT    = Path(__file__).parent.parent
+DB_PATH         = PROJECT_ROOT / "data" / "sources" / "travis_property_tax.db"
+STR_PATH        = PROJECT_ROOT / "data" / "sources" / "shortrent_locations.geojson"
+AIRBNB_PATH     = PROJECT_ROOT / "data" / "sources" / "listings.geojson"
+OUTPUT_PATH     = PROJECT_ROOT / "data" / "products" / "hex_ratios.geojson"
 
 H3_RESOLUTION   = 8
 MIN_SFR_TOTAL   = 20    # minimum SFR parcels per cell for stable ratios
@@ -51,7 +51,7 @@ def cell_to_polygon(cell_id: str) -> Polygon:
 
 
 # =============================================================================
-# Stage 4 Functions
+# Stage 2 Functions
 # =============================================================================
 
 def load_str_airbnb(str_path: Path, airbnb_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -225,7 +225,7 @@ def build_and_save_geodataframe(hex_filtered: pd.DataFrame, output_path: Path) -
 
 def main():
     print("=" * 60)
-    print("Stage 4: Ratio Computation")
+    print("Stage 2: Ratio Computation")
     print("=" * 60)
 
     print("\n[1/5] Loading STR permits and Airbnb listings...")
@@ -249,6 +249,9 @@ def main():
     print(hex_gdf[["homestead_rate", "str_permit_rate", "airbnb_rate", "registration_gap"]].describe().round(4))
     print("=" * 60)
     print("Done.")
+
+
+run = main
 
 
 if __name__ == "__main__":
