@@ -110,9 +110,9 @@ property_tax_project/
 │   ├── __init__.py
 │   ├── fetch_tcad.py              # Manual prerequisite — run before main.py
 │   ├── load_protax_to_sqlite.py   # Stage 1
-│   ├── stage1_ouput_test.py       # Stage 1 output verification
+│   ├── stage1_output_test.py      # Stage 1 output verification
 │   ├── aggregate_to_hex.py        # Stage 2
-│   ├── stage2_ouput_test.py       # Stage 2 output verification
+│   ├── stage2_output_test.py      # Stage 2 output verification
 │   └── visualize.py               # Stage 3 (not yet built)
 ├── data/
 │   ├── sources/                   # Raw inputs and SQLite db

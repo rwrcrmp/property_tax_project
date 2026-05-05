@@ -2,7 +2,7 @@
 Output verification tests for Stage 2 (Hex Aggregation and Ratio Computation).
 
 Usage:
-    python scripts/stage2_ouput_test.py
+    python scripts/stage2_output_test.py
 """
 
 import json

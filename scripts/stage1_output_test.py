@@ -2,7 +2,7 @@
 Output verification tests for Stage 1 (Load TCAD JSON to SQLite).
 
 Usage:
-    python scripts/stage1_ouput_test.py
+    python scripts/stage1_output_test.py
 """
 
 import sqlite3

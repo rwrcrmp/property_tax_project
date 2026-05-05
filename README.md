@@ -16,16 +16,16 @@ The core hypothesis is that properties operating as whole-home short-term rental
 
 | Dataset | Source | File |
 |---|---|---|
-| Inside Airbnb listings | [Inside Airbnb](http://insideairbnb.com) | `data/raw/listings.geojson` |
-| Austin STR permits | City of Austin Open Data Portal | `data/raw/shortrent_locations.geojson` |
-| Travis County boundary | U.S. Census TIGERweb REST API | `data/raw/travis_county.geojson` |
-| TCAD property tax export | Travis County Appraisal District | `data/raw/Travis_protaxExport_*.json` |
+| Inside Airbnb listings | [Inside Airbnb](http://insideairbnb.com) | `data/sources/listings.geojson` |
+| Austin STR permits | City of Austin Open Data Portal | `data/sources/shortrent_locations.geojson` |
+| Travis County boundary | U.S. Census TIGERweb REST API | `data/sources/travis_county.geojson` |
+| TCAD property tax export | Travis County Appraisal District | `data/sources/Travis_protaxExport_*.json` |
 
 ---
 
 ## Pipeline
 
-### Step 1: TCAD Data Ingestion (`load_protax_to_sqlite.py`)
+### Stage 1: TCAD Data Ingestion (`load_protax_to_sqlite.py`)
 
 The TCAD property tax export is a ~29GB JSON file. This script streams it record-by-record using `ijson` (never loading the full file into memory) and loads it into a normalized SQLite database at `data/processed/travis_property_tax.db`.
 
@@ -42,7 +42,7 @@ The TCAD property tax export is a ~29GB JSON file. This script streams it record
 
 SQL queries for exploring exemption data are in `queries/homestead_exemptions.sql`.
 
-### Step 2: Ratio Computation (`aggregate_to_hex.py`)
+### Stage 2: Ratio Computation (`aggregate_to_hex.py`)
 
 The core analytical pipeline. Queries the SQLite database, combines all three data sources, and produces a per-neighborhood ratio dataset saved to `data/processed/hex_ratios.geojson`.
 
