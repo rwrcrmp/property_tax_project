@@ -11,12 +11,13 @@ Usage:
     python load_protax_to_sqlite.py
 """
 
+import re
 import sqlite3
 import ijson
 import time
 import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 
 
@@ -24,12 +25,11 @@ from decimal import Decimal
 # Configuration
 # ============================================================================
 
-PROJECT_ROOT = Path(__file__).parent
-DATA_RAW = PROJECT_ROOT / "data" / "raw"
-DATA_PROCESSED = PROJECT_ROOT / "data" / "processed"
-
+PROJECT_ROOT = Path(__file__).parent.parent
+DATA_RAW = PROJECT_ROOT / "data" / "sources"
+DATA_PROCESSED = PROJECT_ROOT / "data" / "products"
 JSON_FILE = DATA_RAW / "Travis_protaxExport_20250720.json"
-DB_FILE = DATA_PROCESSED / "travis_property_tax.db"
+DB_FILE = DATA_RAW / "travis_property_tax.db"
 
 BATCH_SIZE = 10000  # Records per commit
 PROGRESS_INTERVAL = 5000  # Print progress every N records
@@ -640,22 +640,53 @@ def load_json_to_sqlite(json_path, db_path, batch_size=BATCH_SIZE):
 # Entry Point
 # ============================================================================
 
-if __name__ == "__main__":
+def _validate_json_file():
+    """Check JSON source file before loading. Raises on hard failures, warns on soft ones."""
+
+    # Check 1 — file existence
+    if not JSON_FILE.exists():
+        raise FileNotFoundError(
+            f"Source JSON not found: {JSON_FILE}\n"
+            f"  Run 'python scripts/fetch_tcad.py' to download it."
+        )
+
+    # Check 2 — file size (full export is ~29GB; below 10GB likely a partial download)
+    size_gb = JSON_FILE.stat().st_size / (1024 ** 3)
+    MIN_SIZE_GB = 10.0
+    if size_gb < MIN_SIZE_GB:
+        raise ValueError(
+            f"JSON file is only {size_gb:.1f} GB — expected ~29 GB.\n"
+            f"  This likely indicates an incomplete download.\n"
+            f"  Delete the file and run 'python scripts/fetch_tcad.py' to re-download."
+        )
+    print(f"  JSON file: {JSON_FILE.name} ({size_gb:.1f} GB)")
+
+    # Check 3 — stale file warning (soft, does not block)
+    match = re.search(r'(\d{8})', JSON_FILE.name)
+    if match:
+        try:
+            file_date = datetime.strptime(match.group(1), '%Y%m%d').date()
+            age_days = (date.today() - file_date).days
+            if age_days > 180:
+                print(f"  WARNING: Export is {age_days} days old (dated {file_date}).")
+                print("  A newer TCAD export may be available at traviscad.org.")
+                print("  Update SELECTED_EXPORT in fetch_tcad.py and re-run it to refresh.")
+        except ValueError:
+            pass
+
+
+def run():
     print("=" * 60)
     print("Travis County Property Tax Export - JSON to SQLite Loader")
     print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
     print()
 
-    # Verify input file exists
-    if not JSON_FILE.exists():
-        print(f"ERROR: Input file not found: {JSON_FILE}")
-        exit(1)
+    _validate_json_file()
 
-    # Run the loader
-    try:
-        load_json_to_sqlite(JSON_FILE, DB_FILE)
-        print("\nSuccess!")
-    except Exception as e:
-        print(f"\nFailed with error: {e}")
-        exit(1)
+    load_json_to_sqlite(JSON_FILE, DB_FILE)
+    print("\nSuccess!")
+
+
+if __name__ == "__main__":
+    run()

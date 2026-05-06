@@ -13,3 +13,4 @@ dependencies:
   - ipykernel
   - geopy
   - h3
+  - ijson

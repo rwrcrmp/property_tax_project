@@ -28,8 +28,8 @@ build/
 .pytest_cache/
 
 # Project data files (large, not tracked)
-data/raw/*
-data/processed/*
+data/sources/*
+data/products/*
 data/exports/*
 
 # But keep .gitkeep files
