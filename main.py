@@ -12,6 +12,7 @@ from scripts.load_protax_to_sqlite import run as load
 from scripts.stage1_output_test import run as test_stage1
 from scripts.aggregate_to_hex import run as aggregate
 from scripts.stage2_output_test import run as test_stage2
+from scripts.visualize import run as visualize
 
 
 if __name__ == "__main__":
@@ -23,5 +24,8 @@ if __name__ == "__main__":
     print("\n--- Stage 2: Hex Aggregation and Ratio Computation ---")
     aggregate()
     test_stage2()
+
+    print("\n--- Stage 3: Visualization and Correlation Analysis ---")
+    visualize()
 
     print("\nPipeline complete.")
