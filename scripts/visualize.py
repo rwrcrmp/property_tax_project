@@ -49,7 +49,8 @@ def main():
         )
 
     response = requests.get(TIGERWEB_URL, timeout=30)
-    features = response.json()["features"]
+    response.raise_for_status()
+    features = response.json().get("features", [])
     county_gdf = gpd.GeoDataFrame.from_features(features, crs="EPSG:4326")
 
     print(f"County boundary rows: {len(county_gdf)}")
@@ -134,7 +135,7 @@ def main():
 
     fig, ax = plt.subplots(figsize=(9, 7))
 
-    scatter = ax.scatter(
+    ax.scatter(
         hex_gdf["homestead_rate"],
         hex_gdf["airbnb_rate"],
         s=sizes,

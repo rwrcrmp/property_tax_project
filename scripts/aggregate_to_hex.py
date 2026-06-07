@@ -215,7 +215,7 @@ def build_and_save_geodataframe(hex_filtered: pd.DataFrame, output_path: Path) -
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     hex_gdf.to_file(output_path, driver="GeoJSON")
-    print(f"  Saved {len(hex_gdf):,} hex cells → {output_path}")
+    print(f"  Saved {len(hex_gdf):,} hex cells -> {output_path}")
 
     return hex_gdf
 
