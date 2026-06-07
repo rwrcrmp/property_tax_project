@@ -83,21 +83,22 @@ rate is lower than the geocoded set, introducing a mild upward bias in `homestea
 
 ### Stage 3 — Visualization and Correlation Analysis
 **Script:** `scripts/visualize.py`
-**Status:** Not yet built
+**Status:** Complete
 
-Planned outputs:
+Outputs:
 
-1. **Choropleth maps** — side-by-side maps of `homestead_rate` and `airbnb_rate` across
-   Travis County hex cells, overlaid on a county boundary reference layer.
+1. **`map_homestead_airbnb.png`** — side-by-side choropleth maps of `homestead_rate` (Blues) and `airbnb_rate` (Oranges) across Travis County hex cells.
 
-2. **Scatter plot** — `homestead_rate` (y-axis) vs. `airbnb_rate` (x-axis), one point per
-   hex cell, with a regression line and `registration_gap` encoded as point size or color.
+2. **`map_registration_gap.png`** — choropleth of `registration_gap` (Airbnb listings minus STR permits) per hex cell.
 
-3. **Correlation summary** — Pearson/Spearman correlation between `homestead_rate` and
-   `airbnb_rate`, with a brief interpretation.
+3. **`scatter_homestead_vs_airbnb.png`** — `homestead_rate` vs. `airbnb_rate`, one point per hex cell, OLS regression line, point size proportional to `registration_gap`.
+
+4. **`correlation_summary.csv`** — Pearson and Spearman correlations for all variable pairs.
+
+5. **`candidate_neighborhoods.csv`** — top 25 hex cells by `registration_gap`.
 
 **Input:** `data/products/hex_ratios.geojson`
-**Output:** figures saved to `data/products/` (formats TBD)
+**Output:** figures and CSVs saved to `data/products/`; committed figures in `images/`
 
 ---
 
@@ -113,10 +114,11 @@ property_tax_project/
 │   ├── stage1_output_test.py      # Stage 1 output verification
 │   ├── aggregate_to_hex.py        # Stage 2
 │   ├── stage2_output_test.py      # Stage 2 output verification
-│   └── visualize.py               # Stage 3 (not yet built)
+│   └── visualize.py               # Stage 3
+├── images/                        # Committed output figures for README
 ├── data/
-│   ├── sources/                   # Raw inputs and SQLite db
-│   └── products/                  # Pipeline outputs
+│   ├── sources/                   # Raw inputs and SQLite db (gitignored)
+│   └── products/                  # Pipeline outputs (gitignored)
 ├── queries/                       # Ad hoc SQL queries
 ├── docs/                          # Project documentation
 ├── environment.yml                # Conda environment spec

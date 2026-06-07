@@ -88,6 +88,21 @@ Correlation between the two rates, while suggestive, does not prove fraud. There
 
 ---
 
+## Preliminary Results
+
+The pipeline has been run against the full TCAD dataset (486,859 parcels), City of Austin STR permits (987 Type 2 permits), and Inside Airbnb listings (7,082 active entire-home listings). After applying inclusion thresholds, 246 hex cells are retained for analysis.
+
+**Key findings:**
+
+- Homestead rate vs. Airbnb density: **r = −0.143** (Pearson), **p = 0.025** — a statistically significant but weak negative correlation at the neighborhood level. The direction is consistent with the hypothesis; the weakness is expected given the ecological aggregation.
+- Airbnb density vs. registration gap: **r = 0.744** — strong, as expected. Denser STR neighborhoods have proportionally more unregistered listings.
+- The single highest-gap hex cell (downtown Austin) has **242 more Airbnb listings than STR permits**, with a homestead rate of 62% — normal for residential stock, suggesting the fraud signal is diluted by neighboring compliant properties at this spatial scale.
+- County-wide, there are **7,082 active Airbnb entire-home listings** against **987 Type 2 STR permits** — a raw registration gap of roughly 6,000 units.
+
+The weak aggregate correlation is not a negative finding — it is the expected result of applying a neighborhood-level lens to a parcel-level phenomenon. It confirms that the free public data can identify *where* to look, but not *who* to audit.
+
+---
+
 ## The Case for Investment
 
 This preliminary analysis is designed to establish spatial patterns at the neighborhood level and identify candidate areas for parcel-level auditing. It is not, on its own, an enforcement tool.
