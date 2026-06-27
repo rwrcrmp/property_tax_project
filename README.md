@@ -1,6 +1,6 @@
 # Travis County Homestead Exemption — STR Fraud Analysis
 
-A spatial proof-of-concept pipeline identifying neighborhoods where short-term rental activity coincides with homestead exemption claims in Travis County, Texas.
+Texas law requires homeowners to use a property as their primary residence to claim a homestead exemption. Whole-home short-term rental operators, by definition, do not live there — yet many appear to continue claiming the exemption. This project is a spatial proof-of-concept that identifies Travis County neighborhoods where STR activity and homestead exemption rates are higher than should co-occur if the tax rolls were accurate, flagging candidate areas for parcel-level audit.
 
 ---
 
@@ -56,7 +56,7 @@ Stage 1 is skipped automatically if the database already exists. Run `scripts/fe
 | `map_homestead_airbnb.png` | Side-by-side choropleth: homestead rate vs. Airbnb density |
 | `map_registration_gap.png` | Unregistered STR listings per hex cell |
 | `scatter_homestead_vs_airbnb.png` | Scatter with OLS fit; point size = registration gap |
-| `correlation_summary.csv` | Pearson + Spearman correlations for all variable pairs |
+| `correlation_summary.csv` | Pearson + Spearman correlations: homestead rate vs. Airbnb rate, homestead rate vs. registration gap, Airbnb rate vs. registration gap |
 | `candidate_neighborhoods.csv` | Top 25 hex cells by registration gap |
 
 ---
@@ -82,17 +82,19 @@ property_tax_project/
 ├── main.py                        # Full pipeline entry point
 ├── scripts/
 │   ├── fetch_tcad.py              # One-time data download (run before main.py)
+│   ├── stage0_preflight.py        # Stage 0: DB check, gates Stage 1
 │   ├── load_protax_to_sqlite.py   # Stage 1
+│   ├── stage1_output_test.py      # Stage 1 output verification (auto-runs)
 │   ├── aggregate_to_hex.py        # Stage 2
-│   ├── visualize.py               # Stage 3
-│   ├── stage0_preflight.py
-│   ├── stage1_output_test.py
-│   └── stage2_output_test.py
+│   ├── stage2_output_test.py      # Stage 2 output verification (auto-runs)
+│   └── visualize.py               # Stage 3
 ├── images/                        # Committed output figures
 ├── data/
 │   ├── sources/                   # Raw inputs and SQLite DB (gitignored)
 │   └── products/                  # Pipeline outputs (gitignored)
-├── docs/                          # Methodology and pitch documents
+├── docs/
+│   ├── pitch.md                   # Problem framing, hypothesis, and findings narrative
+│   └── project_plan.md            # Pipeline implementation reference
 ├── environment.yml
 └── boot_dev_env.bat
 ```
